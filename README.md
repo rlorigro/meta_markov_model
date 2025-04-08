@@ -7,7 +7,7 @@ This project came at a time when I was working on origins of life research, whic
 quantities of abiotically synthesized DNA polymers with early versions of the ONT sequencer and basecaller, before 
 CNN-RNN basecallers were widely used. The way signal preprocessing worked at the time was counterproductive to our goal 
 of identifying very short polyA/T sequences, since they would often get filtered out. So I designed a custom method to 
-find our polymers in the raw signal data, based on Hidden Markov Models.
+find our polymers in the raw signal data, using Hidden Markov Models.
 
 ![nanopore_signal.png](data/nanopore_signal.png)
 
@@ -77,6 +77,66 @@ order graph and the expected sequence of each node:
 
 ![abstraction.png](data/abstraction.png)
 
+This framework allows the user to quickly build high level models, using arbitrary transition probabilities to 
+initialize weights before training:
+
+```python
+filename = "kmerMeans"
+
+fLeadMeans = #...
+fLeadStdevs = #...
+rLeadMeans = #...
+rLeadStdevs = #...
+rLeadTailMeans = #...
+rLeadTailStdevs = #...
+pA_means = #...
+pA_stdevs = #...
+pT_means = #...
+pT_stdevs = #...
+hairpinMeans = #...
+hairpinStdevs = #...
+
+builder = metaHMMBuilder(filename)
+
+transitions = {"B1":{"B2":0.2,
+                     "hairpin":0.1,
+                     "pA":0.3,
+                     "pT":0.3,
+                     "rLead":0.1},
+               "B2":{"B1":0.2,
+                     "hairpin":0.1,
+                     "pA":0.3,
+                     "pT":0.3,
+                     "rLead":0.1},
+               "start":{"fLead":1},
+               "pA":{"hairpin":0.1,
+                     "pA":0.4,
+                     "B1":0.2,
+                     "B2":0.2,
+                     "rLead":0.1},
+               "pT": {"hairpin": 0.1,
+                      "pT":0.4,
+                      "B1": 0.2,
+                      "B2": 0.2,
+                      "rLead": 0.1},
+               "rLeadTail":{"end":1}}
+
+nodes = {"B1": "GGGTTCAATCAAGGGTTCAATCAAGGGTTCAATCAAGGGTTCAATCAAT",
+         "B2": "TTGATTGAACCCTTGATTGAACCCTTGATTGAACCCTTGATTGAACCCAAAAAA",
+         "fLead": (fLeadMeans,fLeadStdevs),
+         "rLead": (rLeadMeans, rLeadStdevs),
+         "rLeadTail": (rLeadTailMeans,rLeadTailStdevs),
+         "pA": (pA_means,pA_stdevs),
+         "pT": (pT_means,pT_stdevs),
+         "hairpin": (hairpinMeans,hairpinStdevs)}
+
+builder.buildMetaHMM(nodes,transitions)
+```
+
+In this example, some of the initial means/stdevs were hardcoded, and some were automatically inferred from the sequence
+using a mapping from the `kmerMeans` file. The hairpin and lead/tail sequences must be hardcoded because they contain 
+signals that result from open channels or depurinated DNA.
+
 ## Results
 
 Given the higher order model, and some signal data from our first attempt to sequence abiotic polymers on the Nanopore 
@@ -91,4 +151,3 @@ by comparing the log likelihood between this model and a null model:
 ![null_model.png](data/null_model.png)
 
 ![log_likelihood_ratio_table.png](data/log_likelihood_ratio_table.png)
-

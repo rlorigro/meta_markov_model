@@ -1,11 +1,6 @@
 from Fast5Types import *
-import numpy as np
-from matplotlib import pyplot as plot
-import copy
-import os
 import yahmm
 from kmerAnalysis import *
-import random
 import sys
 
 
