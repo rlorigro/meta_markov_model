@@ -98,7 +98,17 @@ hairpinStdevs = #...
 
 builder = metaHMMBuilder(filename)
 
-transitions = {"B1":{"B2":0.2,
+transitions = {"fLead":{"pT":0.4,
+                        "pA":0.4,
+                        "B1":0.1,
+                        "B2":0.1},
+               "rLead":{"end":1/2.0,
+                        "rLeadTail":1/2.0},
+               "hairpin":{"pA":1/3.0,
+                          "pT":1/3.0,
+                          "B1":1/6.0,
+                          "B2":1/6.0},
+               "B1":{"B2":0.2,
                      "hairpin":0.1,
                      "pA":0.3,
                      "pT":0.3,
